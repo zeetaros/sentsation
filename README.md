@@ -30,3 +30,13 @@ Method 2: Install __sentsation__ straight from PyPI
 
 ## Author  
 * **Cheuky S.Y** - *Initial work*
+
+## Sundries
+#### Sensational soundtracks to play while coding:
+* "Time" -- from "Inception"
+* "Do You Hear the People Sing?" -- from "Les Misérables"
+* "Stars At Our Backs" -- from "Monster Hunter"
+
+#### Useful audio processing tools:
+* FFmpeg
+* SoX - Sound eXchange
