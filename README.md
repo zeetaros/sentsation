@@ -1,7 +1,7 @@
 # Sentsation
 __sentsation__ is a Python module for multimodal sentiment/emotion analysis.
 
-The project was started as a capstone project for Udacity Machine Learning Nanodegree. It will be under continuous development, and by no mean a mature module at current stage (in other words, use at your own risk :P).  
+The package is under continuous development, and by no mean a mature package at current stage (in other words, use at your own risk :P).  
 
 ## Prerequisites  
 The module was built on Python 3.6  
@@ -34,8 +34,8 @@ Method 2: Install __sentsation__ straight from PyPI
 ## Sundries
 #### Sensational soundtracks to play while coding:
 * "Time" -- from "Inception"
+* "The Music of the Night" -- from "The Phantom of the Opera"
 * "Do You Hear the People Sing?" -- from "Les Misérables"
-* "Stars At Our Backs" -- from "Monster Hunter"
 
 #### Useful audio processing tools:
 * FFmpeg
