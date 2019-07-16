@@ -72,25 +72,25 @@ class FeatureIllustrator():
 
 
 class MFCCsExtractor():
-    def __init__(self, sampling_rate):
+    def __init__(self, sampling_rate=None):
         self.sampling_rate = sampling_rate or 44100
 
-    def from_audiofiles(self, audiofilelist, hop_length=None, n_mfcc=None, use_scale=False, max_len=None):
-        hop_length = hop_length or 256
-        n_mfcc = n_mfcc or 25
-
+    def from_audiofiles(self, audiofilelist, hop_length=None, n_mfcc=None, max_len=None, use_scale=False):
         mfcc_list = []
         for af in audiofilelist:
             y, sr = librosa.load(af, sr=self.sampling_rate)
             mfcc = self.extract_mfcc(wave=y, sr=sr, n_mfcc=n_mfcc,
                                       hop_length=hop_length, max_len=max_len)
-            if use_scale:
-                mfcc = scale(mfcc, axis=1)
             mfcc_list.append(mfcc)
         return mfcc_list
 
-    def extract_mfcc(self, wave, sr, n_mfcc, hop_length, max_len=None):
+    def extract_mfcc(self, wave, sr, n_mfcc, hop_length, max_len=None, use_scale=None):
+        hop_length = hop_length or 256
+        n_mfcc = n_mfcc or 25
+        use_scale = use_scale or False
         mfcc = librosa.feature.mfcc(wave, sr=sr, n_mfcc=n_mfcc, hop_length=hop_length)
+        if use_scale:
+            mfcc = scale(mfcc, axis=1)
 
         # If maximum length exceeds mfcc lengths then pad the remaining ones
         if max_len:
