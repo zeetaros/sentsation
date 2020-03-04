@@ -1,28 +1,73 @@
+import os
 import boto3
-from boto3.session import Session as S3Session
-from .config import Config
+import logging
+from boto3.session import Session
+from .config import Config as conf
 
-def get_s3_client(token=None):
-    if token:
-        sess = S3Session(aws_access_key_id=token['Credentials']['AccessKeyId'],
-                aws_secret_access_key=token['Credentials']['SecretAccessKey'],
-                aws_session_token=token['Credentials']['SessionToken'])
-    else:
-        sess = S3Session(aws_access_key_id=Config.AWS_KEY,
-                aws_secret_access_key=Config.AWS_SECRET)
-    return sess.client('s3')
+logger = logging.getLogger(__name__)
+logging.basicConfig(format='%(asctime)s - %(levelname)s - %(module)s - %(message)s')
+loglevels = {
+    "CRITICAL": logging.CRITICAL,
+    "WARNING": logging.WARNING,
+    "INFO": logging.INFO,
+    "DEBUG": logging.DEBUG,
+    "": logging.INFO
+}
+logger.setLevel(loglevels[os.getenv("LOG_LEVEL", "INFO")])
 
-def get_s3_resource(token=None):
-    if token:
-        sess = S3Session(aws_access_key_id=token['Credentials']['AccessKeyId'],
-                aws_secret_access_key=token['Credentials']['SecretAccessKey'],
-                aws_session_token=token['Credentials']['SessionToken'])
-    else:
-        sess = S3Session(aws_access_key_id=Config().AWS_KEY,
-                aws_secret_access_key=Config().AWS_SECRET)
-    return sess.resource('s3')
+def _open_aws_session(aws_access_key_id=conf.AWS_KEY,
+                      aws_secret_access_key=conf.AWS_SECRET,
+                      aws_session_token=conf.AWS_TOKEN,
+                      region_name=conf.AWS_REGION,
+                      profile=conf.AWS_PROFILE):
 
-# aws s3 presign s3://awsexamplebucket/test2.txt --expires-in 60*15
+    sess = Session(aws_access_key_id=aws_access_key_id,
+                    aws_secret_access_key=aws_secret_access_key,
+                    aws_session_token=aws_session_token,
+                    region_name=region_name,
+                    profile_name=profile)
+    return sess
 
-# https://stackoverflow.com/questions/2677317/how-to-read-remote-video-on-amazon-s3-using-ffmpeg
-    
+def get_aws_client(service=None, 
+                   aws_access_key_id=conf.AWS_KEY,
+                   aws_secret_access_key=conf.AWS_SECRET,
+                   aws_session_token=conf.AWS_TOKEN,
+                   region_name=conf.AWS_REGION,
+                   profile=conf.AWS_PROFILE):
+    """
+    Function to create AWS client instance with the chosen service (e.g. S3, SQS) - this is not an open connection.
+    ====PARAM====
+    aws_access_key_id: aws access key
+    aws_secret_access_key: aws secret key
+    region_name: aws region
+    profile: aws profile to use, which will be fetched from ~/.aws/credentials
+
+    ====RETURN====
+    boto3 s3/sqs client object
+    """
+    service = service or 's3'
+    if any([profile, aws_access_key_id, aws_secret_access_key]):
+        sess = _open_aws_session(aws_access_key_id, aws_secret_access_key, aws_session_token, region_name, profile)
+        return sess.client(service)
+    return boto3.client(service)
+
+def get_aws_resource(service=None, 
+                   aws_access_key_id=conf.AWS_KEY,
+                   aws_secret_access_key=conf.AWS_SECRET,
+                   aws_session_token=conf.AWS_TOKEN,
+                   region_name=conf.AWS_REGION,
+                   profile=conf.AWS_PROFILE):
+    """
+    Function to create AWS resource instance with the chosen service (e.g. S3, SQS) - this is not an open connection.
+    ====PARAM====
+    aws_access_key_id: aws access key
+    aws_secret_access_key: aws secret key
+    region_name: aws region
+    profile: aws profile to use, which will be fetched from ~/.aws/credentials
+
+    ====RETURN====
+    boto3 s3/sqs resource object
+    """
+    service = service or 's3'
+    sess = _open_aws_session(aws_access_key_id, aws_secret_access_key, aws_session_token, region_name, profile)
+    return sess.resource(service)
