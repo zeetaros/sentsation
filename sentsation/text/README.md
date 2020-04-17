@@ -19,4 +19,4 @@ VBN verb, past.
 
 __POS v.s Tag__
 
-<img src="img/wordnet_1.png" style="width: 200px;" align="left"/>  
+<img src="img/wordnet_1.png" style="width: 100px;" align="left"/>  
