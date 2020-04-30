@@ -1,3 +1,4 @@
+import numpy as np
 from nltk.corpus import sentiwordnet as swn
 from nltk import pos_tag, word_tokenize
 
@@ -14,11 +15,11 @@ class SentiScorer():
     senti_score_word: returns the positive score and the negative score for a given word
     senti_score_text: returns the aggregated(sum) positive score and the aggregated(sum) negative score for a given document
     """
-    def __init__(self, transform_POS=None, POS_mapper=None, dropna=None, synsets_aggregation=None):
-        self.transform_POS=transform_POS or True
-        self.dropna=dropna or True
+    def __init__(self, transform_POS=True, POS_mapper=None, dropna=True, synsets_aggregation=None):
+        self.transform_POS = transform_POS
+        self.dropna = dropna
         self.aggregation = synsets_aggregation or 'avg'
-        self.mapper=POS_mapper or {
+        self.mapper = POS_mapper or {
                 "JJ": 'a',
                 "JJR": 'a',
                 "JJS": 'a',
@@ -35,7 +36,9 @@ class SentiScorer():
                 "VBN": 'v'
             }
     
-    def get_POS(self, doc, transform_POS=True, mapper=None, dropna=True):        
+    def get_POS(self, doc, transform_POS=None, mapper=None, dropna=None):
+        transform_POS = transform_POS or self.transform_POS
+        dropna = dropna or self.dropna    
         text = word_tokenize(doc)
         tags = pos_tag(text)
         if transform_POS:
@@ -47,6 +50,8 @@ class SentiScorer():
         return tags
 
     def senti_score_word(self, token, pos=None, synsets_aggregation=None):
+        if synsets_aggregation not in ['mean','avg', 'sum', 'max', None]:
+            raise ValueError('Aggregation method not recognised!')
         aggregation = synsets_aggregation or self.aggregation
         synsets = list(swn.senti_synsets(token, pos=pos))
         if not synsets:
@@ -60,9 +65,12 @@ class SentiScorer():
         if aggregation=='max':
             pos_aggr_scores = max(pos_scores)
             neg_aggr_scores = max(neg_scores)
+        if aggregation=='sum':
+            pos_aggr_scores = sum(pos_scores)
+            neg_aggr_scores = sum(neg_scores)
         return pos_aggr_scores, neg_aggr_scores
 
-    def senti_score_text(self, doc, synsets_aggregation=None):
+    def senti_score_text(self, doc:str, synsets_aggregation=None):
         aggregation = synsets_aggregation or self.aggregation
         text_POS = self.get_POS(doc)
         word_scores = [self.senti_score_word(token=t[0], pos=t[1], synsets_aggregation=aggregation)
@@ -70,3 +78,13 @@ class SentiScorer():
         text_pos_score = sum([s[0] for s in word_scores])
         text_neg_score = sum([s[1] for s in word_scores])
         return text_pos_score, text_neg_score
+
+    def fit(self):
+        pass
+
+    def transform(self, docs:list, synsets_aggregation=None):
+        """
+        docs: a iterable list of documents or transcription segments
+        """
+        scores = [list(self.senti_score_text(doc=d, synsets_aggregation=synsets_aggregation)) for d in docs]
+        return np.array(scores)
